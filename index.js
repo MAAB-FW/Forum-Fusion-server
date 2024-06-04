@@ -91,7 +91,12 @@ async function run() {
 
         // get all users data from db //TODO: verifyAdmin
         app.get("/users", verifyToken, async (req, res) => {
-            const result = await usersCollection.find().toArray()
+            const search = req.query.search
+            let query = {}
+            if (search) {
+                query = { userName: { $regex: search, $options: "i" } }
+            }
+            const result = await usersCollection.find(query).toArray()
             res.send(result)
         })
 

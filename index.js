@@ -33,8 +33,21 @@ async function run() {
     try {
         // Connect the client to the server	(optional starting in v4.7)
         await client.connect()
-        
-        
+        const db = client.db("forumFusionDB")
+        const usersCollection = db.collection("users")
+
+        // user data insert to the db
+        app.post("/users", async (req, res) => {
+            const userInfo = req.body
+            const query = { email: userInfo.email }
+            const isExist = await usersCollection.findOne(query)
+            if (isExist) {
+                return res.send({ status: "success" })
+            }
+            const result = await usersCollection.insertOne(userInfo)
+            res.send(result)
+        })
+
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 })
         console.log("Pinged your deployment. You successfully connected to MongoDB!")

@@ -3,7 +3,7 @@ const cors = require("cors")
 const jwt = require("jsonwebtoken")
 const cookieParser = require("cookie-parser")
 require("dotenv").config()
-const { MongoClient, ServerApiVersion } = require("mongodb")
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb")
 const port = process.env.PORT || 5000
 
 const app = express()
@@ -30,19 +30,6 @@ const client = new MongoClient(uri, {
     },
 })
 
-// middleware
-const verifyToken = (req, res, next) => {
-    const token = req?.cookies?.token
-    if (!token) return res.status(401).send({ message: "Unauthorized access!" })
-    jwt.verify(token, process.env.TOKEN_SECRET, (err, decoded) => {
-        if (err) {
-            return res.status(401).send({ message: "Unauthorized access!" })
-        }
-        res.decoded = decoded
-        next()
-    })
-}
-
 const cookieOptions = {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
@@ -56,6 +43,28 @@ async function run() {
         const db = client.db("forumFusionDB")
         const usersCollection = db.collection("users")
 
+        // middleware
+        const verifyToken = (req, res, next) => {
+            const token = req?.cookies?.token
+            if (!token) return res.status(401).send({ message: "Unauthorized access!" })
+            jwt.verify(token, process.env.TOKEN_SECRET, (err, decoded) => {
+                if (err) {
+                    return res.status(401).send({ message: "Unauthorized access!" })
+                }
+                req.decoded = decoded
+                next()
+            })
+        }
+
+        const verifyAdmin = async (req, res, next) => {
+            const email = req.decoded.email
+            const query = { email: email }
+            const user = await usersCollection.findOne(query)
+            if (user.role !== "admin") {
+                return res.status(403).send({ message: "Forbidden access!" })
+            }
+            next()
+        }
         // jwt related api
         app.post("/jwt", (req, res) => {
             const user = req.body
@@ -92,6 +101,17 @@ async function run() {
             const user = await usersCollection.findOne(query)
             const role = user.role
             res.send({ role })
+        })
+
+        // make admin
+        app.patch("/makeAdmin/:id", verifyToken, verifyAdmin, async (req, res) => {
+            const id = req.params.id
+            const filter = { _id: new ObjectId(id) }
+            const updateDoc = {
+                $set: { role: "admin" },
+            }
+            const result = await usersCollection.updateOne(filter, updateDoc)
+            res.send(result)
         })
 
         // Send a ping to confirm a successful connection

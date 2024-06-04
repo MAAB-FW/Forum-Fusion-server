@@ -30,6 +30,19 @@ const client = new MongoClient(uri, {
     },
 })
 
+// middleware
+const verifyToken = (req, res, next) => {
+    const token = req?.cookies?.token
+    if (!token) return res.status(401).send({ message: "Unauthorized access!" })
+    jwt.verify(token, process.env.TOKEN_SECRET, (err, decoded) => {
+        if (err) {
+            return res.status(401).send({ message: "Unauthorized access!" })
+        }
+        res.decoded = decoded
+        next()
+    })
+}
+
 const cookieOptions = {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
@@ -44,13 +57,13 @@ async function run() {
         const usersCollection = db.collection("users")
 
         // jwt related api
-        app.post("/jwt", async (req, res) => {
+        app.post("/jwt", (req, res) => {
             const user = req.body
             const token = jwt.sign(user, process.env.TOKEN_SECRET, { expiresIn: "365d" })
             res.cookie("token", token, cookieOptions).send({ success: true })
         })
 
-        app.post("/logout", async (req, res) => {
+        app.post("/logout", (req, res) => {
             res.clearCookie("token", { ...cookieOptions, maxAge: 0 }).send({ success: true })
         })
 
@@ -68,7 +81,7 @@ async function run() {
         })
 
         // get all users data from db //TODO: verifyAdmin
-        app.get("/users", async (req, res) => {
+        app.get("/users", verifyToken, async (req, res) => {
             const result = await usersCollection.find().toArray()
             res.send(result)
         })

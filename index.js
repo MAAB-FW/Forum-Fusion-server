@@ -42,6 +42,7 @@ async function run() {
         await client.connect()
         const db = client.db("forumFusionDB")
         const usersCollection = db.collection("users")
+        const announcementsCollection = db.collection("announcements")
 
         // middleware
         const verifyToken = (req, res, next) => {
@@ -90,7 +91,7 @@ async function run() {
         })
 
         // get all users data from db //TODO: verifyAdmin
-        app.get("/users", verifyToken, async (req, res) => {
+        app.get("/users", verifyToken, verifyAdmin, async (req, res) => {
             const search = req.query.search
             let query = {}
             if (search) {
@@ -116,6 +117,13 @@ async function run() {
                 $set: { role: "admin" },
             }
             const result = await usersCollection.updateOne(filter, updateDoc)
+            res.send(result)
+        })
+
+        // make announcement
+        app.post("/makeAnnouncement", async (req, res) => {
+            const data = req.body
+            const result = await announcementsCollection.insertOne(data)
             res.send(result)
         })
 

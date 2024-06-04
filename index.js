@@ -44,7 +44,8 @@ async function run() {
             if (isExist) {
                 return res.send({ status: "success" })
             }
-            const result = await usersCollection.insertOne(userInfo)
+            const doc = { ...userInfo, badge: "bronze", role: "user" }
+            const result = await usersCollection.insertOne(doc)
             res.send(result)
         })
 

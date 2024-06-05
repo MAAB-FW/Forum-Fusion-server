@@ -44,6 +44,7 @@ async function run() {
         const usersCollection = db.collection("users")
         const announcementsCollection = db.collection("announcements")
         const tagsCollection = db.collection("tags")
+        const postsCollection = db.collection("posts")
 
         // middleware
         const verifyToken = (req, res, next) => {
@@ -151,6 +152,13 @@ async function run() {
         // get all tags from db
         app.get("/tags", async (req, res) => {
             const result = await tagsCollection.find().toArray()
+            res.send(result)
+        })
+
+        // add post
+        app.post("/addPost", async (req, res) => {
+            const postData = req.body
+            const result = await postsCollection.insertOne(postData)
             res.send(result)
         })
 

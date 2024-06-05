@@ -168,6 +168,22 @@ async function run() {
             res.send(result)
         })
 
+        // get single users posts
+        app.get("/myPosts/:email", async (req, res) => {
+            const email = req.params.email
+            const query = { authorEmail: email }
+            const result = await postsCollection.find(query).toArray()
+            res.send(result)
+        })
+
+        // get one post from db
+        app.get("/post/:id", async (req, res) => {
+            const id = req.params.id
+            const query = { _id: new ObjectId(id) }
+            const result = await postsCollection.findOne(query)
+            res.send(result)
+        })
+
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 })
         console.log("Pinged your deployment. You successfully connected to MongoDB!")

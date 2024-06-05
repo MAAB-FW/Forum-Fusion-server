@@ -43,6 +43,7 @@ async function run() {
         const db = client.db("forumFusionDB")
         const usersCollection = db.collection("users")
         const announcementsCollection = db.collection("announcements")
+        const tagsCollection = db.collection("tags")
 
         // middleware
         const verifyToken = (req, res, next) => {
@@ -128,8 +129,15 @@ async function run() {
         })
 
         // get announcements
-        app.get('/announcements',async(req,res)=>{
+        app.get("/announcements", async (req, res) => {
             const result = await announcementsCollection.find().toArray()
+            res.send(result)
+        })
+
+        // add tag to the db
+        app.post("/tags", async (req, res) => {
+            const tag = req.body
+            const result = await tagsCollection.insertOne(tag)
             res.send(result)
         })
 

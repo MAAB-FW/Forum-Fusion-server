@@ -141,6 +141,12 @@ async function run() {
             res.send(result)
         })
 
+        // get all tags from db
+        app.get("/tags", async (req, res) => {
+            const result = await tagsCollection.find().toArray()
+            res.send(result)
+        })
+
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 })
         console.log("Pinged your deployment. You successfully connected to MongoDB!")

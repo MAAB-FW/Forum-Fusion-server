@@ -138,7 +138,8 @@ async function run() {
 
         // get announcements
         app.get("/announcements", async (req, res) => {
-            const result = await announcementsCollection.find().toArray()
+            const options = { sort: { postTime: -1 } }
+            const result = await announcementsCollection.find({}, options).toArray()
             res.send(result)
         })
 

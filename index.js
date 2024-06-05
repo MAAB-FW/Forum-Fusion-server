@@ -176,6 +176,17 @@ async function run() {
             res.send(result)
         })
 
+        // get recent posts for user
+        app.get("/recentPosts/:email", async (req, res) => {
+            const email = req.params.email
+            const query = { authorEmail: email }
+            const options = {
+                sort: { postTime: -1 },
+            }
+            const result = await postsCollection.find(query, options).toArray()
+            res.send(result)
+        })
+
         // get one post from db
         app.get("/post/:id", async (req, res) => {
             const id = req.params.id

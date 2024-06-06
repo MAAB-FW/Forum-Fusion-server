@@ -182,7 +182,7 @@ async function run() {
             const size = parseInt(req.query.size)
             const page = parseInt(req.query.page)
             const result = await postsCollection
-                .find()
+                .find({}, { sort: { postTime: -1 } })
                 .skip(page * size)
                 .limit(size)
                 .toArray()
@@ -248,10 +248,23 @@ async function run() {
             res.send(result)
         })
 
+        // get single post comments
         app.get("/comments/:id", verifyToken, async (req, res) => {
             const id = req.params.id
             const query = { postId: id }
             const result = await commentsCollection.find(query).toArray()
+            res.send(result)
+        })
+
+        // add report for a comment
+        app.put("/reports/:id", verifyToken, async (req, res) => {
+            const id = req.params.id
+            const report = req.body
+            const filter = { _id: new ObjectId(id) }
+            const updateDoc = {
+                $set: { ...report },
+            }
+            const result = await commentsCollection.updateOne(filter, updateDoc, { upsert: true })
             res.send(result)
         })
 

@@ -3,6 +3,7 @@ const cors = require("cors")
 const jwt = require("jsonwebtoken")
 const cookieParser = require("cookie-parser")
 require("dotenv").config()
+const stripe = require("stripe")(process.env.SECRET_KEY)
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb")
 const port = process.env.PORT || 5000
 
@@ -79,6 +80,18 @@ async function run() {
             res.clearCookie("token", { ...cookieOptions, maxAge: 0 }).send({ success: true })
         })
 
+        // payment related api
+        app.post("/createPaymentIntent", verifyToken, async (req, res) => {
+            const price = req.body.price
+            const amount = parseFloat(price * 100)
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: amount,
+                currency: "usd",
+                payment_method_types: ["card"],
+            })
+            res.send({ clientSecret: paymentIntent.client_secret })
+        })
+
         // user data insert to the db
         app.post("/users", async (req, res) => {
             const userInfo = req.body
@@ -103,7 +116,7 @@ async function run() {
             res.send(result)
         })
 
-        app.get("/myProfile/:email", async (req, res) => {
+        app.get("/myProfile/:email", verifyToken, async (req, res) => {
             const email = req.params.email
             const query = { email: email }
             const result = await usersCollection.findOne(query)
@@ -130,7 +143,7 @@ async function run() {
         })
 
         // make announcement
-        app.post("/makeAnnouncement", async (req, res) => {
+        app.post("/makeAnnouncement", verifyToken, /* TODO: Check */ verifyAdmin, async (req, res) => {
             const data = req.body
             const result = await announcementsCollection.insertOne(data)
             res.send(result)
@@ -144,7 +157,7 @@ async function run() {
         })
 
         // add tag to the db
-        app.post("/tags", async (req, res) => {
+        app.post("/tags", verifyToken, /* TODO: check */ verifyAdmin, async (req, res) => {
             const tag = req.body
             const result = await tagsCollection.insertOne(tag)
             res.send(result)
@@ -157,7 +170,7 @@ async function run() {
         })
 
         // add post
-        app.post("/addPost", async (req, res) => {
+        app.post("/addPost", verifyToken, async (req, res) => {
             const postData = req.body
             const result = await postsCollection.insertOne(postData)
             res.send(result)
@@ -170,7 +183,7 @@ async function run() {
         })
 
         // get single users posts
-        app.get("/myPosts/:email", async (req, res) => {
+        app.get("/myPosts/:email", verifyToken, async (req, res) => {
             const email = req.params.email
             const query = { authorEmail: email }
             const result = await postsCollection.find(query).toArray()
@@ -178,7 +191,7 @@ async function run() {
         })
 
         // get recent posts for user
-        app.get("/recentPosts/:email", async (req, res) => {
+        app.get("/recentPosts/:email", verifyToken, async (req, res) => {
             const email = req.params.email
             const query = { authorEmail: email }
             const options = {
@@ -201,6 +214,17 @@ async function run() {
             const id = req.params.id
             const query = { _id: new ObjectId(id) }
             const result = await postsCollection.deleteOne(query)
+            res.send(result)
+        })
+
+        // membership badge
+        app.patch("/badge/:email", verifyToken, async (req, res) => {
+            const email = req.params.email
+            const filter = { email: email }
+            const updateDoc = {
+                $set: { badge: "gold" },
+            }
+            const result = await usersCollection.updateOne(filter, updateDoc)
             res.send(result)
         })
 

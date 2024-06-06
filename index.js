@@ -46,6 +46,7 @@ async function run() {
         const announcementsCollection = db.collection("announcements")
         const tagsCollection = db.collection("tags")
         const postsCollection = db.collection("posts")
+        const commentsCollection = db.collection("comments")
 
         // middleware
         const verifyToken = (req, res, next) => {
@@ -225,6 +226,20 @@ async function run() {
                 $set: { badge: "gold" },
             }
             const result = await usersCollection.updateOne(filter, updateDoc)
+            res.send(result)
+        })
+
+        // add comment to the db
+        app.post("/comments", verifyToken, async (req, res) => {
+            const commentData = req.body
+            const result = await commentsCollection.insertOne(commentData)
+            res.send(result)
+        })
+
+        app.get("/comments/:id", verifyToken, async (req, res) => {
+            const id = req.params.id
+            const query = { postId: id }
+            const result = await commentsCollection.find(query).toArray()
             res.send(result)
         })
 

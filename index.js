@@ -241,11 +241,28 @@ async function run() {
             res.send(result)
         })
 
-        // add comment to the db
-        app.post("/comments", verifyToken, async (req, res) => {
-            const commentData = req.body
-            const result = await commentsCollection.insertOne(commentData)
+        // delete comments while deleting post
+        app.delete("/deleteComments/:id", verifyToken, async (req, res) => {
+            const id = req.params.id
+            console.log(id)
+            const filter = { postId: id }
+            const result = await commentsCollection.deleteMany(filter)
             res.send(result)
+        })
+
+        // add comment to the db
+        app.post("/comments/:id", verifyToken, async (req, res) => {
+            const commentData = req.body
+            const postId = req.params.id
+            console.log(postId)
+            const filter = { _id: new ObjectId(postId) }
+            const updateDoc = {
+                $inc: { commentsCount: 1 },
+            }
+            const inCCount = await postsCollection.updateOne(filter, updateDoc)
+
+            const result = await commentsCollection.insertOne(commentData)
+            res.send({ result, inCCount })
         })
 
         // get single post comments

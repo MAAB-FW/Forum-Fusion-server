@@ -179,8 +179,20 @@ async function run() {
 
         // get all posts from db
         app.get("/posts", async (req, res) => {
-            const result = await postsCollection.find().toArray()
+            const size = parseInt(req.query.size)
+            const page = parseInt(req.query.page)
+            const result = await postsCollection
+                .find()
+                .skip(page * size)
+                .limit(size)
+                .toArray()
             res.send(result)
+        })
+
+        // get posts Count
+        app.get("/postsCount", async (req, res) => {
+            const count = await postsCollection.countDocuments()
+            res.send({ count })
         })
 
         // get single users posts

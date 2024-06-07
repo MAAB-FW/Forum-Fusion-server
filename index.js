@@ -47,6 +47,7 @@ async function run() {
         const tagsCollection = db.collection("tags")
         const postsCollection = db.collection("posts")
         const commentsCollection = db.collection("comments")
+        const votesCollection = db.collection("votes")
 
         // middleware
         const verifyToken = (req, res, next) => {
@@ -244,7 +245,6 @@ async function run() {
         // delete comments while deleting post
         app.delete("/deleteComments/:id", verifyToken, async (req, res) => {
             const id = req.params.id
-            console.log(id)
             const filter = { postId: id }
             const result = await commentsCollection.deleteMany(filter)
             res.send(result)
@@ -254,7 +254,6 @@ async function run() {
         app.post("/comments/:id", verifyToken, async (req, res) => {
             const commentData = req.body
             const postId = req.params.id
-            console.log(postId)
             const filter = { _id: new ObjectId(postId) }
             const updateDoc = {
                 $inc: { commentsCount: 1 },
@@ -282,6 +281,30 @@ async function run() {
                 $set: { ...report },
             }
             const result = await commentsCollection.updateOne(filter, updateDoc, { upsert: true })
+            res.send(result)
+        })
+
+        // get votes from votes collection
+        app.get("/getVote/:email", verifyToken, async (req, res) => {
+            const email = req.params.email
+            const postId = req.query.postId
+            const query = { voterEmail: email, postId: postId }
+            const result = await votesCollection.findOne(query)
+            res.send(result)
+        })
+
+        // update vote data in db
+        app.put("/updateVotes", verifyToken, async (req, res) => {
+            const voteData = req.body
+            const id = voteData.voteId
+            let filter = {}
+            if (id) {
+                filter = { _id: new ObjectId(id) }
+            }
+            const updateDoc = {
+                $set: { ...voteData },
+            }
+            const result = await votesCollection.updateOne(filter, updateDoc, { upsert: true })
             res.send(result)
         })
 

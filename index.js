@@ -303,14 +303,15 @@ async function run() {
         app.put("/updateVotes", verifyToken, async (req, res) => {
             const voteData = req.body
             const id = voteData.voteId
-            let filter = {}
             if (id) {
-                filter = { _id: new ObjectId(id) }
+                const filter = { _id: new ObjectId(id) }
+                const updateDoc = {
+                    $set: { ...voteData },
+                }
+                const result = await votesCollection.updateOne(filter, updateDoc)
+                return res.send(result)
             }
-            const updateDoc = {
-                $set: { ...voteData },
-            }
-            const result = await votesCollection.updateOne(filter, updateDoc, { upsert: true })
+            const result = await votesCollection.insertOne(voteData)
             res.send(result)
         })
 

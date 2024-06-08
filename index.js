@@ -356,8 +356,6 @@ async function run() {
             }
             const postVoteUpdate = await postsCollection.updateOne(query, updateCount)
 
-            //TODO:
-            // console.log("k", voteId)
             if (voteId) {
                 const filter = { _id: new ObjectId(voteId) }
 

@@ -302,17 +302,73 @@ async function run() {
         // update vote data in db
         app.put("/updateVotes", verifyToken, async (req, res) => {
             const voteData = req.body
-            const id = voteData.voteId
-            if (id) {
-                const filter = { _id: new ObjectId(id) }
+            const voteId = voteData.voteId
+            console.log(voteData)
+            // const upVote = voteData.upVote
+            // const downVote = voteData.downVote
+            // const postId = voteData.postId
+            // const voterEmail = voteData.voterEmail
+            // const vote = voteData.vote
+            // const query = { _id: new ObjectId(postId) }
+            // const post = await postsCollection.findOne(query)
+            // const isEmailExist = post?.voterEmails?.find((e) => e === voterEmail)
+            // let updateCount = {}
+            // if (vote === "up") {
+            //     if (upVote) {
+            //         if (isEmailExist) {
+            //             updateCount = {
+            //                 $inc: { upVote: 1, downVote: -1 },
+            //                 $pull: { voterEmails: voterEmail },
+            //             }
+            //         } else {
+            //             updateCount = {
+            //                 $inc: { upVote: 1 },
+            //                 $addToSet: { voterEmails: [...voterEmail] },
+            //             }
+            //         }
+            //     } else {
+            //         updateCount = {
+            //             $inc: { upVote: -1 },
+            //             $pull: { voterEmails: voterEmail },
+            //         }
+            //     }
+            // }
+            // if (vote === "down") {
+            //     if (downVote) {
+            //         if (isEmailExist) {
+            //             updateCount = {
+            //                 $inc: { upVote: -1, downVote: 1 },
+            //                 $pull: { voterEmails: voterEmail },
+            //             }
+            //         } else {
+            //             updateCount = {
+            //                 $inc: { downVote: 1 },
+            //                 $addToSet: { voterEmails: [...voterEmail] },
+            //             }
+            //         }
+            //     } else {
+            //         updateCount = {
+            //             $inc: { downVote: -1 },
+            //             $pull: { voterEmails: voterEmail },
+            //         }
+            //     }
+            // }
+            // const postVoteUpdate = await postsCollection.updateOne(query, updateCount)
+
+            // if (id) {
+            console.log(voteId)
+            if (voteId) {
+                const filter = { _id: new ObjectId(voteId) }
+
                 const updateDoc = {
                     $set: { ...voteData },
                 }
                 const result = await votesCollection.updateOne(filter, updateDoc)
                 return res.send(result)
+            } else {
+                const result = await votesCollection.insertOne(voteData)
+                res.send(result)
             }
-            const result = await votesCollection.insertOne(voteData)
-            res.send(result)
         })
 
         // Send a ping to confirm a successful connection

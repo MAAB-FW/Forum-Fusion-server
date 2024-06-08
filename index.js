@@ -303,60 +303,61 @@ async function run() {
         app.put("/updateVotes", verifyToken, async (req, res) => {
             const voteData = req.body
             const voteId = voteData.voteId
-            console.log(voteData)
-            // const upVote = voteData.upVote
-            // const downVote = voteData.downVote
-            // const postId = voteData.postId
-            // const voterEmail = voteData.voterEmail
-            // const vote = voteData.vote
-            // const query = { _id: new ObjectId(postId) }
-            // const post = await postsCollection.findOne(query)
-            // const isEmailExist = post?.voterEmails?.find((e) => e === voterEmail)
-            // let updateCount = {}
-            // if (vote === "up") {
-            //     if (upVote) {
-            //         if (isEmailExist) {
-            //             updateCount = {
-            //                 $inc: { upVote: 1, downVote: -1 },
-            //                 $pull: { voterEmails: voterEmail },
-            //             }
-            //         } else {
-            //             updateCount = {
-            //                 $inc: { upVote: 1 },
-            //                 $addToSet: { voterEmails: [...voterEmail] },
-            //             }
-            //         }
-            //     } else {
-            //         updateCount = {
-            //             $inc: { upVote: -1 },
-            //             $pull: { voterEmails: voterEmail },
-            //         }
-            //     }
-            // }
-            // if (vote === "down") {
-            //     if (downVote) {
-            //         if (isEmailExist) {
-            //             updateCount = {
-            //                 $inc: { upVote: -1, downVote: 1 },
-            //                 $pull: { voterEmails: voterEmail },
-            //             }
-            //         } else {
-            //             updateCount = {
-            //                 $inc: { downVote: 1 },
-            //                 $addToSet: { voterEmails: [...voterEmail] },
-            //             }
-            //         }
-            //     } else {
-            //         updateCount = {
-            //             $inc: { downVote: -1 },
-            //             $pull: { voterEmails: voterEmail },
-            //         }
-            //     }
-            // }
-            // const postVoteUpdate = await postsCollection.updateOne(query, updateCount)
+            // console.log(voteData)
+            const upVote = voteData.upVote
+            const downVote = voteData.downVote
+            const postId = voteData.postId
+            const voterEmail = voteData.voterEmail
+            const vote = voteData.vote
+            const query = { _id: new ObjectId(postId) }
+            const post = await postsCollection.findOne(query)
+            const isEmailExist = post?.voterEmails?.find((e) => e === voterEmail)
+            // console.log(post?.voterEmails[0])
+            let updateCount = {}
+            if (vote === "up") {
+                if (upVote) {
+                    if (isEmailExist) {
+                        updateCount = {
+                            $inc: { upVote: 1, downVote: -1 },
+                            $addToSet: { voterEmails: voterEmail },
+                        }
+                    } else {
+                        updateCount = {
+                            $inc: { upVote: 1 },
+                            $addToSet: { voterEmails: voterEmail },
+                        }
+                    }
+                } else {
+                    updateCount = {
+                        $inc: { upVote: -1 },
+                        $pull: { voterEmails: voterEmail },
+                    }
+                }
+            }
+            if (vote === "down") {
+                if (downVote) {
+                    if (isEmailExist) {
+                        updateCount = {
+                            $inc: { upVote: -1, downVote: 1 },
+                            $addToSet: { voterEmails: voterEmail },
+                        }
+                    } else {
+                        updateCount = {
+                            $inc: { downVote: 1 },
+                            $addToSet: { voterEmails: voterEmail },
+                        }
+                    }
+                } else {
+                    updateCount = {
+                        $inc: { downVote: -1 },
+                        $pull: { voterEmails: voterEmail },
+                    }
+                }
+            }
+            const postVoteUpdate = await postsCollection.updateOne(query, updateCount)
 
-            // if (id) {
-            console.log(voteId)
+            //TODO:
+            // console.log("k", voteId)
             if (voteId) {
                 const filter = { _id: new ObjectId(voteId) }
 
@@ -364,10 +365,10 @@ async function run() {
                     $set: { ...voteData },
                 }
                 const result = await votesCollection.updateOne(filter, updateDoc)
-                return res.send(result)
+                return res.send({ result, postVoteUpdate })
             } else {
                 const result = await votesCollection.insertOne(voteData)
-                res.send(result)
+                res.send({ result, postVoteUpdate })
             }
         })
 

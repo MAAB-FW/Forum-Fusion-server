@@ -285,11 +285,17 @@ async function run() {
         })
 
         // get votes from votes collection
-        app.get("/getVote/:email", verifyToken, async (req, res) => {
-            const email = req.params.email
-            const postId = req.query.postId
+        app.get("/getVote/:postId", verifyToken, async (req, res) => {
+            const email = req.decoded.email
+            const postId = req.params.postId
+            if (!postId) {
+                return res.send({ message: "post not found" })
+            }
             const query = { voterEmail: email, postId: postId }
             const result = await votesCollection.findOne(query)
+            if (!result) {
+                return res.send({ message: "query not found" })
+            }
             res.send(result)
         })
 

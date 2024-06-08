@@ -370,6 +370,19 @@ async function run() {
             }
         })
 
+        // get Total data for pie chart
+        app.get("/totalData", verifyToken, verifyAdmin, async (req, res) => {
+            const totalPosts = await postsCollection.countDocuments()
+            const totalComments = await commentsCollection.countDocuments()
+            const totalUsers = await usersCollection.countDocuments()
+            const result = {
+                totalPosts,
+                totalComments,
+                totalUsers,
+            }
+            res.send(result)
+        })
+
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 })
         console.log("Pinged your deployment. You successfully connected to MongoDB!")

@@ -40,7 +40,7 @@ const cookieOptions = {
 async function run() {
     try {
         // Connect the client to the server	(optional starting in v4.7)
-        await client.connect()
+        // await client.connect()
         const db = client.db("forumFusionDB")
         const usersCollection = db.collection("users")
         const announcementsCollection = db.collection("announcements")
@@ -182,12 +182,30 @@ async function run() {
         app.get("/posts", async (req, res) => {
             const size = parseInt(req.query.size)
             const page = parseInt(req.query.page)
+            const popularity = JSON.parse(req.query.popularity)
+            if (popularity) {
+                const result = await postsCollection
+                    .aggregate([
+                        {
+                            $addFields: {
+                                voteDifference: { $subtract: ["$upVote", "$downVote"] },
+                            },
+                        },
+                        {
+                            $sort: { voteDifference: -1 },
+                        },
+                        { $skip: page * size },
+                        { $limit: size },
+                    ])
+                    .toArray()
+                return res.send({ result, from: "ager" })
+            }
             const result = await postsCollection
                 .find({}, { sort: { postTime: -1 } })
                 .skip(page * size)
                 .limit(size)
                 .toArray()
-            res.send(result)
+            res.send({ result, from: "g" })
         })
 
         // get posts Count
@@ -399,7 +417,7 @@ async function run() {
         })
 
         // Send a ping to confirm a successful connection
-        await client.db("admin").command({ ping: 1 })
+        // await client.db("admin").command({ ping: 1 })
         console.log("Pinged your deployment. You successfully connected to MongoDB!")
     } finally {
         // Ensures that the client will close when you finish/error

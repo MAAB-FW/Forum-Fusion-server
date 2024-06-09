@@ -198,14 +198,14 @@ async function run() {
                         { $limit: size },
                     ])
                     .toArray()
-                return res.send({ result, from: "ager" })
+                return res.send(result)
             }
             const result = await postsCollection
                 .find({}, { sort: { postTime: -1 } })
                 .skip(page * size)
                 .limit(size)
                 .toArray()
-            res.send({ result, from: "g" })
+            res.send(result)
         })
 
         // get posts Count
@@ -299,6 +299,19 @@ async function run() {
                 $set: { ...report },
             }
             const result = await commentsCollection.updateOne(filter, updateDoc, { upsert: true })
+            res.send(result)
+        })
+
+        // get all reported comments
+        app.get("/reportedComments", verifyToken, verifyAdmin, async (req, res) => {
+            const result = await commentsCollection.find({ report: { $exists: true } }).toArray()
+            res.send(result)
+        })
+
+        // delete reported comment
+        app.delete("/deleteReportedComment/:id", verifyToken, verifyAdmin, async (req, res) => {
+            const id = req.params.id
+            const result = await commentsCollection.deleteOne({ _id: new ObjectId(id) })
             res.send(result)
         })
 

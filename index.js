@@ -108,13 +108,20 @@ async function run() {
         })
 
         // get all users data from db //TODO: verifyAdmin
-        app.get("/users", verifyToken, verifyAdmin, async (req, res) => {
+        app.get("/manageUsers", verifyToken, verifyAdmin, async (req, res) => {
             const search = req.query.search
+            const size = parseInt(req.query.size)
+            const page = parseInt(req.query.page)
+
             let query = {}
             if (search) {
                 query = { userName: { $regex: search, $options: "i" } }
             }
-            const result = await usersCollection.find(query).toArray()
+            const result = await usersCollection
+                .find(query)
+                .skip(page * size)
+                .limit(size)
+                .toArray()
             res.send(result)
         })
 
@@ -331,7 +338,13 @@ async function run() {
 
         // get all reported comments
         app.get("/reportedComments", verifyToken, verifyAdmin, async (req, res) => {
-            const result = await commentsCollection.find({ report: { $exists: true } }).toArray()
+            const size = parseInt(req.query.size)
+            const page = parseInt(req.query.page)
+            const result = await commentsCollection
+                .find({ report: { $exists: true } })
+                .skip(page * size)
+                .limit(size)
+                .toArray()
             res.send(result)
         })
 
@@ -439,10 +452,12 @@ async function run() {
             const totalPosts = await postsCollection.countDocuments()
             const totalComments = await commentsCollection.countDocuments()
             const totalUsers = await usersCollection.countDocuments()
+            const totalReports = await commentsCollection.countDocuments({ report: { $exists: true } })
             const result = {
                 totalPosts,
                 totalComments,
                 totalUsers,
+                totalReports,
             }
             res.send(result)
         })

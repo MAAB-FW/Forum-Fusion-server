@@ -217,9 +217,22 @@ async function run() {
         // get single users posts
         app.get("/myPosts/:email", verifyToken, async (req, res) => {
             const email = req.params.email
+            const size = parseInt(req.query.size)
+            const page = parseInt(req.query.page)
             const query = { authorEmail: email }
-            const result = await postsCollection.find(query).toArray()
+            const result = await postsCollection
+                .find(query)
+                .skip(page * size)
+                .limit(size)
+                .toArray()
             res.send(result)
+        })
+
+        // get myPosts count
+        app.get("/myPostsCount", verifyToken, async (req, res) => {
+            const email = req.decoded.email
+            const count = await postsCollection.countDocuments({ authorEmail: email })
+            res.send({ count })
         })
 
         // get recent posts for user

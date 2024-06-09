@@ -383,6 +383,21 @@ async function run() {
             res.send(result)
         })
 
+        // get search post with tag for banner
+        app.get("/bannerSearch", async (req, res) => {
+            const searchText = req.query.q
+            let query = {}
+            if (searchText) {
+                query = {
+                    tags: {
+                        $elemMatch: { name: { $regex: searchText, $options: "i" } },
+                    },
+                }
+            }
+            const result = await postsCollection.find(query).toArray()
+            res.send(result)
+        })
+
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 })
         console.log("Pinged your deployment. You successfully connected to MongoDB!")

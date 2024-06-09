@@ -260,6 +260,14 @@ async function run() {
             res.send(result)
         })
 
+        // get comments count
+        app.get("/commentsCount/:id", verifyToken, async (req, res) => {
+            const postId = req.params.id
+            const filter = { postId: postId }
+            const count = await commentsCollection.countDocuments(filter)
+            res.send({ count })
+        })
+
         // delete comments while deleting post
         app.delete("/deleteComments/:id", verifyToken, async (req, res) => {
             const id = req.params.id
@@ -285,8 +293,14 @@ async function run() {
         // get single post comments
         app.get("/comments/:id", verifyToken, async (req, res) => {
             const id = req.params.id
+            const size = parseInt(req.query.size)
+            const page = parseInt(req.query.page)
             const query = { postId: id }
-            const result = await commentsCollection.find(query).toArray()
+            const result = await commentsCollection
+                .find(query)
+                .skip(page * size)
+                .limit(size)
+                .toArray()
             res.send(result)
         })
 

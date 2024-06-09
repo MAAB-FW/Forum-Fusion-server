@@ -311,6 +311,12 @@ async function run() {
         // delete reported comment
         app.delete("/deleteReportedComment/:id", verifyToken, verifyAdmin, async (req, res) => {
             const id = req.params.id
+            const postId = req.query.postId
+            console.log(postId)
+            const updateDoc = {
+                $inc: { commentsCount: -1 },
+            }
+            const deleteCommentsCount = await postsCollection.updateOne({ _id: new ObjectId(postId) }, updateDoc)
             const result = await commentsCollection.deleteOne({ _id: new ObjectId(id) })
             res.send(result)
         })

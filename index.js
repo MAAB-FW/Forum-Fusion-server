@@ -449,9 +449,12 @@ async function run() {
 
         // get Total data for pie chart
         app.get("/totalData", verifyToken, verifyAdmin, async (req, res) => {
+            const search = req.query.search
+            let query = {}
+            if (search) query = { userName: { $regex: search, $options: "i" } }
             const totalPosts = await postsCollection.countDocuments()
             const totalComments = await commentsCollection.countDocuments()
-            const totalUsers = await usersCollection.countDocuments()
+            const totalUsers = await usersCollection.countDocuments(query)
             const totalReports = await commentsCollection.countDocuments({ report: { $exists: true } })
             const result = {
                 totalPosts,

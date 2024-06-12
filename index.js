@@ -15,7 +15,7 @@ app.use(cookieParser())
 //Must remove "/" from your production URL
 app.use(
     cors({
-        origin: ["http://localhost:5173", "https://maab-fw-assignment-12.vercel.app"],
+        origin: ["http://localhost:5173", "https://maab-fw-assignment-12.vercel.app", "https://maab-fw-a12.vercel.app"],
         credentials: true,
     }),
 )

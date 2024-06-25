@@ -438,8 +438,9 @@ async function run() {
             }
             const postVoteUpdate = await postsCollection.updateOne(query, updateCount)
 
-            if (voteId) {
-                const filter = { _id: new ObjectId(voteId) }
+            const isExist = await votesCollection.findOne({postId:postId, voterEmail: req.decoded.email})
+            if (isExist) {
+                const filter = { postId:postId, voterEmail: req.decoded.email }
 
                 const updateDoc = {
                     $set: { ...voteData },

@@ -20,6 +20,7 @@ app.use(
             "https://maab-fw-assignment-12.vercel.app",
             "https://maab-fw-a12.vercel.app",
             "https://forum.maabfw.co",
+            "https://forumfusion.vercel.app",
         ],
         credentials: true,
     }),
